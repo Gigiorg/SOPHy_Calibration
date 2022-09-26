@@ -46,12 +46,12 @@ for root, direc, file in os.walk(PATH_TABLES):
                       ax_1.scatter(date_time,c_initial)
                       ax_1.plot(date_time, c_initial)
                       ax_1.grid()
-                      ax_1.set_title(f"Std: {std_initial}")
+                      ax_1.set_title(f"Standard Deviation: {std_initial}")
                       ax_2 = fig.add_subplot(2,1,2)
                       ax_2.scatter(date_time,c_after)
                       ax_2.plot(date_time, c_after)
                       ax_2.grid()
-                      ax_2.set_title(f"Std: {std_after}")
+                      ax_2.set_title(f"Standard Deviation: {std_after}")
                       
                       
                       
