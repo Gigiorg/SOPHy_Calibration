@@ -175,6 +175,7 @@ for exp in range(1,7):
         
 #%%
 
+OFFSET = 38.5
 pulse_width = 0.1e-6
 c = 3e8
 sigma_r = 0.35*pulse_width*c/2
@@ -216,8 +217,15 @@ for exp in range(1,7):
     df = pd.read_csv(PATHS_TAB[exp-1])
     
     date = []
+    
+    #
     l_esf = df.l_e
     h_esf = df.z_e
+    x_dro = df.x_d
+    y_dro = df.y_d
+    e_sph = df.E_l
+    f_sph = df.F_l
+    
     constant = []
     time_W = []
     power = []
@@ -228,7 +236,11 @@ for exp in range(1,7):
     range_r = []
     ro_max  =[]
     wr = []
-    c_after = []
+    c_after_wr= []
+    wb = []
+    c_after_wb = []
+    
+    
     for i in df.time:
         
         dat, tim = i.split(" ")
@@ -246,9 +258,15 @@ for exp in range(1,7):
             idx_sph = date.index(utctime)
             h = h_esf[idx_sph]
             l = l_esf[idx_sph]
-            r = np.sqrt((float(h)-2.9)**2 + float(l)**2)
+            x_D = x_dro[idx_sph]
+            y_D = y_dro[idx_sph]
+            e_SPH = e_sph[idx_sph]
+            f_SPH = f_sph[idx_sph]
+            
+            
+           
             p_max =  exps[exp][i]['maxpower_sph']
-            C = (p_max*(r**4))/rcs
+          
             
             #
             r_max_idx = exps[exp][i]['rpower_sph'].index(max(exps[exp][i]['rpower_sph']))
@@ -256,33 +274,61 @@ for exp in range(1,7):
             range_max = exps[exp][i]['esfera'][d_sph][2]
             perf_max = exps[exp][i]['esfera'][d_sph][1]
             #print(perf_max)
-            v_max = 15*range_max-15
+      
             
+            
+            
+            #WB
+            
+            theta_X_bar = float(i[-11:-7])
+            theta_Y_bar = perf_max
+            
+            gamma = np.rad2deg(np.arctan((y_D)/(x_D)))
+            theta =  OFFSET - gamma
+            alfa =  np.rad2deg(np.arctan(f_SPH/l))
+            
+            theta_X = theta + alfa
+            theta_Y = np.rad2deg(np.arctan((h-2.9)/l))
+            
+            Wb = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2) -((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+          
+            #WR
+            r = np.sqrt((float(h)-2.9)**2 + float(l)**2)
+            v_max = 15*range_max-15
+            Wr = np.exp(-((r-v_max)**2)/(2*sigma_r**2))
+            
+            
+            
+            
+            C = (p_max*(r**4))/rcs
             #print(C)
             constant.append(C)
             constant_db.append(10*np.log10(C))
             power.append(p_max)
             power_db.append(10*np.log10(p_max))
-            azimuth.append(float(i[-11:-7]))
+            azimuth.append(theta_X_bar)
             time_W.append(utctime)
             file.append(i)
             range_r.append(r)
             ro_max.append(15*range_max-15)
-            Wr = np.exp(-((r-v_max)**2)/(2*sigma_r**2))
             wr.append(Wr)
-            c_after.append(10*np.log10((p_max*(r**4))/(rcs*Wr)))
+            wb.append(Wb)
+           
+            c_after_wr.append(10*np.log10((p_max*(r**4))/(rcs*Wr)))
+            c_after_wb.append(10*np.log10((p_max*(r**4))/(rcs*Wr*Wb)))
+            
         except:
             idx_sph = 0
     
     
-    data = [file, time_W, azimuth, range_r, ro_max, power, power_db, constant, constant_db, wr, c_after]
+    data = [file, time_W, azimuth, range_r, ro_max, power, power_db, constant, constant_db, wr, c_after_wr, wb, c_after_wb]
     
     #Print all the calculated results for each sample in an excel table
     df = pd.DataFrame(data)
     df = df.transpose()
     df.columns = ["Filename", "Time", "Azimuth", "Range","ro Max", "Received Power", "R Power [dB]","Constant", "Constant [db]", "Wr",
-                  "Constant after [dB]"]
-    df.to_excel(r'C:\Users\GIBS\Documents\Experimentos\Experiments_wr'+str(exp)+'.xlsx', sheet_name='tabla')
+                  "Constant after Wr [dB]","Wb","Constant after Wb [dB]"]
+    df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
     
     
