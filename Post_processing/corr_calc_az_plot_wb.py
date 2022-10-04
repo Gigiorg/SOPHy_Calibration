@@ -57,7 +57,7 @@ for root, direc, file in os.walk(PATH_TABLES):
                       ax.grid()
                       
                       ax.set_title(f"{file}, {i}")
-                      ax.legend([f"Without Wr, Wb, std: {std_initial}",f"With Wr std: {std_after_wr}",f"With Wr and Wb std: {std_after_wb}"])
+                      ax.legend([f"Std: {std_initial}",f"Std: {std_after_wr}",f"Std: {std_after_wb}"])
                       '''
                       ax_1 = fig.add_subplot(3,1,1)
                       ax_1.scatter(date_time,c_initial)

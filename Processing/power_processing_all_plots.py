@@ -432,7 +432,7 @@ for exp in range(1,7):
            plt.yticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
            plt.title("Main cells for " + exps[exp][i]["time"])
            title = exps[exp][i]["time"].replace(':','')
-           #plt.savefig(PATH_PLOTS[exp-1] +'//'+title+'.png')
+           plt.savefig(PATH_PLOTS[exp-1] +'//'+title+'.png')
           
                 
         except:
