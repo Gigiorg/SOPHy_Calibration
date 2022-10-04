@@ -333,7 +333,153 @@ for exp in range(1,7):
     
     
 #%%
-for i in PATHS_TAB:
-    a = pd.read_csv(i)
-    print(a.time[0])
+
+pulse_width = 0.1e-6
+c = 3e8
+sigma_r = 0.35*pulse_width*c/2
+sigma_xy = 1.8/2.36
+r_esf = 0.1765                                             # Sphere radius [m]
+rcs = round(np.pi*r_esf**2, 2)                             # Radar Cross Section (Optic Region)
+freq_oper = 9.345e9                                        # Radar operative frequency
+w_length = round(c/freq_oper, 3)                           # Wavelength of the rad
+antenna_gain = 10**(38.5/10)                               # Antenna Gain [dBi]
+k_m = 0.93                                                 # Atmospheric refractive index 
+pulse_width = 0.1e-6                                       # Pulse width of the transmitted pulses [s]
+beam_width = np.deg2rad(1.8)                               # Beam width of the transmitting antenna
+t_power = 1.91                                             # Transmitted Power
+WG_len = 7.87                                              # Waveguide length (2.4m) [ft]
+ #Perdidas
+alfa = 1.4e-2*0.2                                          # Atmospheric attenuation
+L_circu = 0.5                                              # Circulator losses
+L_rot_joint = 0.6                                          # Rotary Joint losses
+L_wg = 0.1*WG_len                                          # Waveguide losses
+L_adap = 0.5                                               # SMA-WR90 adapter losses
+Glna = 10**(83.5/10) 
+
+#L_total = 10**( (alfa + L_circu + L_rot_joint + L_wg + L_adap)/10)     # Total losses
+L_total = 10**( (2*alfa + 2*L_circu + 2*L_wg + 4*L_adap)/10)     # Total losses
+L_total_db = 2*alfa + 2*L_circu + 2*L_wg + 4*L_adap
+
+def calc_constante():
+        
+    C_sph = (t_power*(antenna_gain**2)*(Glna)*(w_length**2))/(((4*np.pi)**3)*(L_total**2))
+    return C_sph
+
+#Iterate over each experiment
+for exp in range(1,7):
+     
+    l_28 = {} 
+    l_29 = {} 
+    l_30 = {}
+    
+  
+    time_pos = getdataset_Exp(PATHS_TAB[exp-1])[0]
+    
+    esf_h_arr = getdataset_Exp(PATHS_TAB[exp-1])[3]
+    esf_s_arr = getdataset_Exp(PATHS_TAB[exp-1])[4]
+    
+    
+    date = []
+    c_initial = []
+    c_initial_db = []
+    time_W = []
+    power = []
+    power_db = []
+    azimuth = []
+    file = []
+    range_r = []
+    ro_max  =[]
+    wr = []
+    c_after = []
+    c_after_db = []
+  
+    
+
+    #Iterate over each file/sample
+    for i in list(exps[exp].keys()):
+        try:
+            
+            for j in list(exps[exp][i]['meds'].keys()):
+                if(exps[exp][i]['meds'][j]['DENTRO'] == "SI"):
+                    #idx_hit = list(exps[exp][i]['meds'].keys()).index(j)
+                    
+                    #Radar variables
+                    perf_max = exps[exp][i]['esfera'][j][1]
+                    range_max = exps[exp][i]['esfera'][j][2]*15
+                    r_power = exps[exp][i]['esfera'][j][4]
+                    
+                    
+                    #Sphere time
+                    
+                    #Timestamp from the h5 file as a base time
+                    date2, time2 = exps[exp][i]['time'].split("  ")
+                    hh,mm,ss = time2.split(":")
+                    time_base = datetime.datetime(2022, 5, dias[exp-1], int(hh), int(mm), int(ss))
+                    
+                    
+                    perf_zero = exps[exp][i]['profiles_H'][0][0]
+                    dif_ang_esf = round((perf_zero-perf_max)/10,1)
+                    dif_secs_esf = math.floor(dif_ang_esf)
+                    dif_decs_esf = int(round(math.modf(dif_ang_esf)[0],1)*10)
+                    time_sphere = time_base + datetime.timedelta(seconds = dif_secs_esf)
+                    idx_sphere = time_pos.index(time_sphere)
+                    idx_sphere_f = int(idx_sphere + 10*dif_decs_esf/2)
+                    #print(exp, i, dif_secs_esf)
+                    
+                    h = esf_h_arr[idx_sphere_f] - 2.9
+                    l = esf_s_arr[idx_sphere_f]
+                    r = np.sqrt(h**2 + l**2)
+                    print(exp, j, range_max, perf_max, r)
+                    
+                    #Calculate the radar calibration constant...
+                    
+                    C_initial = (r_power*(r**4))/rcs
+    
+                    Wr = np.exp(-((r-range_max)**2)/(2*sigma_r**2))
+                    
+                    
+                    
+                    C_after = (r_power*(r**4))/(rcs*Wr)
+                    
+                    
+                    
+                    #Adding each processed variable from a sample to a list 
+                    date.append(exps[exp][i]['time'])
+                    range_r.append(r)
+                    wr.append(Wr)
+                    ro_max.append(range_max)
+                    power.append(r_power)
+                    power_db.append(10*np.log10(r_power))
+                    
+                    c_initial.append(C_initial)
+                    c_initial_db.append(10*np.log10(C_initial))
+                    
+                    #Az
+                    azimuth.append(float(i[-11:-7]))
+                    c_after.append(C_after)
+                    c_after_db.append(10*np.log10(C_after))
+                    file.append(i)
+                   
+            
+        except:
+            
+            pass
+    
+    
+    data = [date, file,azimuth, ro_max, range_r, power, power_db, wr, c_initial, c_initial_db, 
+            c_after, c_after_db]  
+   
+    df = pd.DataFrame(data)
+    df = df.transpose()
+
+    
+    
+    df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 
+                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]']
+    
+    
+    df.to_excel(r'C:\Users\GIBS\Documents\Experimentos\Plots_test\exp_'+str(exp)+'comp.xlsx', sheet_name='tabla')
           
+
+            
+            
