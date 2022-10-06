@@ -33,12 +33,14 @@ for root, direc, file in os.walk(PATH_TABLES):
                       
                       
                       c_initial = perf['C_initial [dB]']
-                      c_after = perf["C_after [dB]"]
-                      c_after_wb = perf["C_after_wb [dB]"]
+                      c_after = perf["C_after Wr [dB]"]
+                      c_after_wb_only = perf["C_after Wb Only [dB]"]
+                      c_after_wb = perf["C_after Wb [dB]"]
                       
                       #c_after_wb = perf['Constant after Wb [dB]']
                       std_initial = np.std(c_initial, ddof=1)
                       std_after_wr = np.std(c_after, ddof=1)
+                      std_after_wb_only = np.std(c_after_wb_only, ddof=1)
                       std_after_wb = np.std(c_after_wb, ddof= 1)
                       
                       
@@ -52,12 +54,16 @@ for root, direc, file in os.walk(PATH_TABLES):
                       ax.scatter(date_time,c_after)
                       ax.plot(date_time,c_after)
                       
+                      ax.scatter(date_time,c_after_wb_only)
+                      ax.plot(date_time,c_after_wb_only)
+                      
                       ax.scatter(date_time,c_after_wb)
                       ax.plot(date_time,c_after_wb)
                       ax.grid()
                       
                       ax.set_title(f"{file}, {i}")
-                      ax.legend([f"Std: {std_initial}",f"Std: {std_after_wr}",f"Std: {std_after_wb}"])
+                      ax.legend([f"Std: {std_initial}",f"Std: {std_after_wr}",
+                                 f"Std: {std_after_wb_only}",f"Std: {std_after_wb}"])
                       '''
                       ax_1 = fig.add_subplot(3,1,1)
                       ax_1.scatter(date_time,c_initial)

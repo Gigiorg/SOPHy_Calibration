@@ -516,6 +516,8 @@ for exp in range(1,7):
     c_after_db = []
     c_after_wb = []
     c_after_wb_db = []
+    c_after_wb_only = []
+    c_after_wb_only_db = []
     wb_x = []
     wb_y = []
     
@@ -600,6 +602,8 @@ for exp in range(1,7):
                    
                      C_after_wb = (r_power*(r**4))/(Wr*Wb)
                      
+                     C_after_wb_only = (r_power*(r**4))/(Wb)
+                     
                 
                      #Adding each processed variable from a sample to a list 
                      date.append(exps[exp][i]['time'])
@@ -626,6 +630,10 @@ for exp in range(1,7):
                      
                      c_after_wb.append(C_after_wb)
                      c_after_wb_db.append(10*np.log10(C_after_wb))
+                     
+                     c_after_wb_only.append(C_after_wb_only)
+                     c_after_wb_only_db.append(10*np.log10(C_after_wb_only))
+                     
                      file.append(i)
                      
                      roll_l.append(roll)
@@ -638,17 +646,18 @@ for exp in range(1,7):
     
     
     data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
-            c_initial, c_initial_db, c_after, c_after_db, c_after_wb, 
-            c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y]      
+            c_initial, c_initial_db, c_after, c_after_db,c_after_wb_only, c_after_wb_only_db,
+            c_after_wb, c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y]      
    
     df = pd.DataFrame(data)
     df = df.transpose()
 
     
     df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
-                  'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after', 
-                  'C_after [dB]','C_after_wb', 'C_after_wb [dB]','Theta X bar', 'Theta X',
-                  'Theta Y bar','Theta Y','Wb x', 'Wb y']
+                  'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after Wr', 
+                  'C_after Wr [dB]','C_after Wb Only','C_after Wb Only [dB]','C_after Wb', 
+                  'C_after Wb [dB]','Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 
+                  'Wb y']
     df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
     
