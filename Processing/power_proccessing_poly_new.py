@@ -16,6 +16,10 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.patches import Polygon
+from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
+
+
 import math
 from scipy.signal import butter, lfilter, freqz
 
@@ -35,12 +39,12 @@ POS_5 = r'C:\Users\GIBS\Documents\Experimentos\Exp5_Final\table_5_end.csv'
 POS_6 = r'C:\Users\GIBS\Documents\Experimentos\Exp6_Final\table_6_end.csv'
 
 
-SAVE_PATH_1 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_1'
-SAVE_PATH_2 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_2'
-SAVE_PATH_3 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_3'
-SAVE_PATH_4 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_4'
-SAVE_PATH_5 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_5'
-SAVE_PATH_6 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots\Plots_exp_6'
+SAVE_PATH_1 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_1'
+SAVE_PATH_2 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_2'
+SAVE_PATH_3 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_3'
+SAVE_PATH_4 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_4'
+SAVE_PATH_5 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_5'
+SAVE_PATH_6 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_power\Plots_exp_6'
 
 
 PATHS = [PATH_1, PATH_2, PATH_3, PATH_4, PATH_5, PATH_6]
@@ -341,10 +345,28 @@ for exp in range(1,7):
                time_sphere = time_base + datetime.timedelta(seconds = dif_secs_esf)
                idx_sphere = list(time_pos).index(time_sphere)
                idx_sphere_f = int(idx_sphere + 10*dif_decs_esf/2)
+               
                plt.plot(esf_s_arr[idx_sphere_f],esf_h_arr[idx_sphere_f]-2.9,'ko', linewidth=2, markersize=10)
                 
            potentials = {}
            potentials_d = {}
+           
+           
+           #Pr*(r**4)
+           for j in exps[exp][i]['esfera'].keys():
+               
+               h = esf_h_arr[idx_sphere_f]
+               s = esf_s_arr[idx_sphere_f]
+               
+               r = np.sqrt(h**2 + s**2)
+               
+               prrangef = exps[exp][i]['esfera'][j][4]*(r**4)
+               prrangeflog = 10*np.log10(prrangef)
+               
+               exps[exp][i]['esfera'][j].append(r)
+               exps[exp][i]['esfera'][j].append(prrangef)
+               exps[exp][i]['esfera'][j].append(prrangeflog)
+           
            
            for j in exps[exp][i]['drone'].keys():
                
@@ -376,11 +398,32 @@ for exp in range(1,7):
                
            for j in exps[exp][i]['esfera'].keys():
                
+              #
+              
+               powerrfo = exps[exp][i]['esfera'][j][-1]
+              
+    
+               if (powerrfo < 45.0): 
+                  color = "aquamarine"
+                  
+               elif(45.0 < powerrfo < 55.0): 
+                  color = "lime"
+                  
+               elif(55.0 < powerrfo < 65.0): 
+                  color = "yellow" 
+                  
+               elif(65.0 < powerrfo < 75.0): 
+                  color = "orange"    
+                 
+               elif(75.0 < powerrfo < 85.0): 
+                  color = "firebrick"       
+            
+                
                corr_perf = exps[exp][i]['profiles_H'][ exps[exp][i]['esfera'][j][3]-d_el[exp-1]][0]
                range_perf = exps[exp][i]['esfera'][j][2]
                #esfera_c = get_coords(j[1],k)
                esfera_c = get_coords(corr_perf,range_perf)
-               ax.add_patch(Polygon(esfera_c[2],edgecolor = 'black', facecolor = 'red', fill=True))
+               ax.add_patch(Polygon(esfera_c[2],edgecolor = 'black', facecolor = color, fill=True))
                plt.plot(esfera_c[0], esfera_c[1],'xw', markersize = 12)
                '''
                power =  exps[exp][i]['powerH'].shape[0]
@@ -393,6 +436,8 @@ for exp in range(1,7):
            
                '''
            
+            
+           ''' 
            if( len(exps[exp][i]['esfera']) != 0): 
                max_power_sph_idx = rpower_sphere.index(max(rpower_sphere)) 
                max_sph_refer = list(exps[exp][i]['esfera'].keys())[max_power_sph_idx]
@@ -404,7 +449,7 @@ for exp in range(1,7):
                ax.add_patch(Polygon(esfera_max[2],edgecolor = 'black', facecolor = 'green', fill=True))
               
                plt.plot(esfera_max[0], esfera_max[1],'xw', markersize = 12)
-           
+           '''
                
            si_cta = 0
            dr_cta = 0
@@ -441,11 +486,19 @@ for exp in range(1,7):
            exps[exp][i].update({"yes":si_cta})
            exps[exp][i].update({"yes_dr":dr_cta})          
            '''
+           
+           scale_img = mpimg.imread('scale.png')
+           imagebox = OffsetImage(scale_img, zoom=0.5)
+           ab = AnnotationBbox(imagebox, (60, 30))
+           ax.add_artist(ab)
+           plt.xlabel("S [m]")
+           plt.ylabel("H [m]")
            plt.grid()
+           plt.draw()
            plt.plot()
            plt.xticks([0,40,80,120,160,200,240,280])
            plt.yticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
-           plt.title("Main cells for " + exps[exp][i]["time"])
+           plt.title("Echoes for " + exps[exp][i]["time"])
            title = exps[exp][i]["time"].replace(':','')
            plt.savefig(PATH_PLOTS[exp-1] +'//'+i[-11:-7]+'//'+title+'.png')
                
@@ -501,7 +554,7 @@ for exp in range(1,7):
     l_28 = {} 
     l_29 = {} 
     l_30 = {}
-    
+        
     
     time_pos = getdataset_Exp(PATHS_TAB[exp-1])[0]
     esf_h_arr = getdataset_Exp(PATHS_TAB[exp-1])[3]
