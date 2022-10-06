@@ -100,7 +100,8 @@ def getdataset_Exp(PATH):
         po = year+"-"+month+"-"+day+" "+hour
         time_list.append(datetime.datetime.strptime(po, "%Y-%m-%d %H:%M:%S"))
         
-    return [time_list, df.z_d, df.l_d, df.z_e, df.l_e, df.x_d, df.y_d, df.E_l, df.F_l]
+    return [time_list,df.z_d, df.l_d, df.z_e, df.l_e, df.x_d, df.y_d, df.E_l, df.F_l, df.roll, df.pitch]
+
 
 
 def get_coords(ang, rangearr):    
@@ -488,6 +489,8 @@ for exp in range(1,7):
     
     
     time_pos = getdataset_Exp(PATHS_TAB[exp-1])[0]
+    roll_p = getdataset_Exp(PATHS_TAB[exp-1])[9]
+    pitch_p = getdataset_Exp(PATHS_TAB[exp-1])[10]
     esf_h_arr = getdataset_Exp(PATHS_TAB[exp-1])[3]
     esf_s_arr = getdataset_Exp(PATHS_TAB[exp-1])[4]
     x_drone = getdataset_Exp(PATHS_TAB[exp-1])[5]
@@ -521,6 +524,8 @@ for exp in range(1,7):
     theta_y_bar = []
     theta_y = []
     
+    roll_l = []
+    pitch_l = []
 
     #Iterate over each file/sample
     for i in list(exps[exp].keys()):
@@ -574,6 +579,9 @@ for exp in range(1,7):
                      x_d = x_drone[idx_sphere_f]
                      e_esf = e_sph[idx_sphere_f]
                      f_esf = f_sph[idx_sphere_f]
+                     roll = roll_p[idx_sphere_f]
+                     pitch = pitch_p[idx_sphere_f]
+                     
                      
                      theta_X_bar = float(i[-11:-7])
                      theta_Y_bar = perf_max
@@ -619,6 +627,9 @@ for exp in range(1,7):
                      c_after_wb.append(C_after_wb)
                      c_after_wb_db.append(10*np.log10(C_after_wb))
                      file.append(i)
+                     
+                     roll_l.append(roll)
+                     pitch_l.append(pitch)
                     
              
         except:
@@ -626,7 +637,7 @@ for exp in range(1,7):
             pass
     
     
-    data = [date, file,azimuth, ro_max, range_r, power, power_db, wr, wb, 
+    data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
             c_initial, c_initial_db, c_after, c_after_db, c_after_wb, 
             c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y]      
    
@@ -634,9 +645,10 @@ for exp in range(1,7):
     df = df.transpose()
 
     
-    df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 'BWF',
-                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]',
-                  'Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 'Wb y']
+    df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
+                  'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after', 
+                  'C_after [dB]','C_after_wb', 'C_after_wb [dB]','Theta X bar', 'Theta X',
+                  'Theta Y bar','Theta Y','Wb x', 'Wb y']
     df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
     
