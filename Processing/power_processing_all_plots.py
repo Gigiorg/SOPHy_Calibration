@@ -444,7 +444,7 @@ for exp in range(1,7):
 
 OFFSET = 38.5                                              # Offset value for the Azimuth correction 
 
-beam_width_deg = np.deg2rad(1.8)                           # Beam width of the transmitting antenna [°]
+beam_width_deg = 1.8                                       # Beam width of the transmitting antenna [°]
 beam_width = np.deg2rad(1.8)                               # Beam width of the transmitting antenna [rad]
 pulse_width = 0.1e-6                                       # Pulse width of the transmitted pulse [s]
 c = 3e8                                                    # Speed of light
@@ -513,6 +513,13 @@ for exp in range(1,7):
     c_after_db = []
     c_after_wb = []
     c_after_wb_db = []
+    wb_x = []
+    wb_y = []
+    
+    theta_x_bar = []
+    theta_x = []
+    theta_y_bar = []
+    theta_y = []
     
 
     #Iterate over each file/sample
@@ -578,7 +585,10 @@ for exp in range(1,7):
                      theta_X = theta + alfa
                      theta_Y = np.rad2deg(np.arctan((h)/l))
                      
-                     Wb = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2) -((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+                     Wb = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2)     -((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+                     Wb_x = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2))
+                     Wb_y = np.exp(-((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+                     
                    
                      C_after_wb = (r_power*(r**4))/(Wr*Wb)
                      
@@ -588,6 +598,12 @@ for exp in range(1,7):
                      range_r.append(r)
                      wr.append(Wr)
                      wb.append(Wb)
+                     wb_x.append(Wb_x)
+                     wb_y.append(Wb_y)
+                     theta_y_bar.append(theta_Y_bar)
+                     theta_y.append(theta_Y)
+                     theta_x_bar.append(theta_X_bar)
+                     theta_x.append(theta_X)
                      ro_max.append(range_max)
                      power.append(r_power)
                      power_db.append(10*np.log10(r_power))
@@ -612,14 +628,15 @@ for exp in range(1,7):
     
     data = [date, file,azimuth, ro_max, range_r, power, power_db, wr, wb, 
             c_initial, c_initial_db, c_after, c_after_db, c_after_wb, 
-            c_after_wb_db]  
+            c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y]      
    
     df = pd.DataFrame(data)
     df = df.transpose()
 
     
     df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 'BWF',
-                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]']
+                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]',
+                  'Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 'Wb y']
     df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
     
