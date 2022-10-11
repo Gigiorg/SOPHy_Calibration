@@ -690,5 +690,3 @@ for exp in range(1,7):
     df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 'BWF',
                   'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]']
     df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
-    
-    

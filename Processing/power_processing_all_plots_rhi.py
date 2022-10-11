@@ -474,6 +474,9 @@ Glna = 10**(83.5/10)
 L_total = 10**( (2*alfa + 2*L_circu + 2*L_wg + 4*L_adap)/10)            # Total losses
 L_total_db = 2*alfa + 2*L_circu + 2*L_wg + 4*L_adap
 
+#RHI PLOT
+a = 6374
+ae = 4/3*a
 
 def get_Constant(Pt, G, Glna, lamb, rcs, L):
     
@@ -597,7 +600,7 @@ for exp in range(1,7):
                      h = esf_h_arr[idx_sphere_f] - 2.9
                      l = esf_s_arr[idx_sphere_f]
                      r = np.sqrt(h**2 + l**2)
-                     print(exp, j, range_max, perf_max, r)
+                     #print(exp, j, range_max, perf_max, r)
                      
                      #Calculate the radar calibration constant...
                      
@@ -638,8 +641,67 @@ for exp in range(1,7):
                      
                      C_after_wb_only = (r_power*(r**4))/(Wb)
                      
-                   
                      
+                     
+                     
+                     # RHI Plot
+                     
+                     n_ele = np.array(exps[exp][i]['elevation'])
+                     n_ran = np.array(exps[exp][i]['range'])
+                     n_azi = np.array(exps[exp][i]['azimuth'])
+                     
+                     power = exps[exp][i]['powerH']
+                     power_list = power.tolist()
+                     corr_power = []
+                     
+                     rows = power.shape[0]
+                     
+                     for row in range(0,len(power_list)-(d_el[exp-1] + 1)):
+                         corr_power.append(power[row + d_el[exp-1]])
+                     
+                     for k in range(row +1, rows):
+                         corr_power.append(-55*np.ones(32))
+                     
+                     
+                     power_f = np.array(corr_power)
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     r2, el_rad2 = np.meshgrid(n_ran, n_ele/180*np.pi)
+                     r21 = r2[:,-33:]
+                     el_rad21 = el_rad2[:,-33:]
+                     ads = np.multiply(r21,np.sin(el_rad21))
+                     ads2 = np.multiply(r21,np.cos(el_rad21))
+                     
+                      
+                     y = (r21**2 + ae**2 + 2*ads*ae)**0.5 - ae
+                     x = ae*np.arcsin(np.divide(ads2,ae+y))
+                     
+                     fig, ax = plt.subplots(1,1,figsize=(15,15))
+                     ax.pcolormesh(x,y,power_f,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
+                     
+                     axq = np.linspace(0, 0.5, 50)
+                     axt = 0.04*np.ones(50)
+                     
+                     
+                     ax.plot(l/1000,h/1000,'o-',color="red",linewidth=15)
+                     
+                     ax.set(ylim=(0,0.3))
+                     ax.set(xlim=(0,0.5))
+                     plt.title("RHI para " + str(exp) + " " +  i)
+                     plt.xlabel("Rango [Km]")
+                     plt.ylabel("Altura [m]")
+                     title = i
+                     title = title.replace("  ", "x")
+                     title = title.replace("-","")
+                     title = title.replace(":","")
+                     #plt.savefig(PATHPLOT+"\\"+title+".png")
+                    
                 
                      #Adding each processed variable from a sample to a list 
                      date.append(exps[exp][i]['time'])
@@ -683,20 +745,40 @@ for exp in range(1,7):
             pass
     
     
-    data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
-            c_initial, c_initial_db, c_after, c_after_db,c_after_wb_only, c_after_wb_only_db,
-            c_after_wb, c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y,
-            exp_const_l, exp_const_l_db]      
+    
+    # data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
+    #         c_initial, c_initial_db, c_after, c_after_db,c_after_wb_only, c_after_wb_only_db,
+    #         c_after_wb, c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y,
+    #         exp_const_l, exp_const_l_db]      
    
-    df = pd.DataFrame(data)
-    df = df.transpose()
+    # df = pd.DataFrame(data)
+    # df = df.transpose()
 
     
-    df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
-                  'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after Wr', 
-                  'C_after Wr [dB]','C_after Wb Only','C_after Wb Only [dB]','C_after Wb', 
-                  'C_after Wb [dB]','Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 
-                  'Wb y','Exp Constant', 'Exp Constant [dB]']
-    df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
+    # df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
+    #               'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after Wr', 
+    #               'C_after Wr [dB]','C_after Wb Only','C_after Wb Only [dB]','C_after Wb', 
+    #               'C_after Wb [dB]','Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 
+    #               'Wb y','Exp Constant', 'Exp Constant [dB]']
+    # df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
+    #%%
+    
+test = exps[5]['SOPHY_20220509_085411_A28.2_S.hdf5']['powerH']
+
+test_l = test.tolist()
+test_corr = []
+
+b = test.shape[0]
+print(b)
+
+for row in range(0,len(test)-9,1):
+    test_corr.append(test[row + 8])
+    
+for i in range(row + 1, b):
+    test_corr.append(-55*np.ones(32))
+    
+    
+new_arr = np.array(test_corr)
+
     
