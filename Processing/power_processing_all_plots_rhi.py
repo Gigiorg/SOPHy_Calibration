@@ -522,10 +522,14 @@ for exp in range(1,7):
     pitch_p = getdataset_Exp(PATHS_TAB[exp-1])[10]
     esf_h_arr = getdataset_Exp(PATHS_TAB[exp-1])[3]
     esf_s_arr = getdataset_Exp(PATHS_TAB[exp-1])[4]
+    
+    
     x_drone = getdataset_Exp(PATHS_TAB[exp-1])[5]
     y_drone = getdataset_Exp(PATHS_TAB[exp-1])[6]
     e_sph = getdataset_Exp(PATHS_TAB[exp-1])[7]
     f_sph = getdataset_Exp(PATHS_TAB[exp-1])[8]
+    drone_h_arr = getdataset_Exp(PATHS_TAB[exp-1])[1]
+    drone_s_arr = getdataset_Exp(PATHS_TAB[exp-1])[2]
     
     
     #Columns for building the table
@@ -602,6 +606,8 @@ for exp in range(1,7):
                      r = np.sqrt(h**2 + l**2)
                      #print(exp, j, range_max, perf_max, r)
                      
+                     h_drone = drone_h_arr[idx_sphere_f] - 2.9
+                     l_drone = drone_s_arr[idx_sphere_f] 
                      #Calculate the radar calibration constant...
                      
                      C_initial = r_power*(r**4)
@@ -690,6 +696,7 @@ for exp in range(1,7):
                      
                      
                      ax.plot(l/1000,h/1000,'o-',color="red",linewidth=15)
+                     ax.plot(l_drone/1000,h_drone/1000,'o-',color="red",linewidth=15)
                      
                      ax.set(ylim=(0,0.3))
                      ax.set(xlim=(0,0.5))
