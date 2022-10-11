@@ -43,6 +43,16 @@ SAVE_PATH_5 = r'C:\Users\GIBS\Documents\Experimentos\Plots_exp_5'
 SAVE_PATH_6 = r'C:\Users\GIBS\Documents\Experimentos\Plots_exp_6'
 
 
+
+SAVE_RHI_1 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_1'
+SAVE_RHI_2 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_2'
+SAVE_RHI_3 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_3'
+SAVE_RHI_4 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_4'
+SAVE_RHI_5 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_5'
+SAVE_RHI_6 = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\RHI\Plots_exp_6'
+
+
+
 PATHS = [PATH_1, PATH_2, PATH_3, PATH_4, PATH_5, PATH_6]
 
 PATHS_TAB = [POS_1, POS_2, POS_3, POS_4, POS_5, POS_6]
@@ -51,7 +61,7 @@ PATHS_TAB = [POS_1, POS_2, POS_3, POS_4, POS_5, POS_6]
 PATH_ALL = r'C:\Users\GIBS\Documents\Experimentos\Exp5_Final\Drone\plots_drone' 
 
 PATH_PLOTS = [SAVE_PATH_1, SAVE_PATH_2, SAVE_PATH_3, SAVE_PATH_4, SAVE_PATH_5, SAVE_PATH_6]
-
+PATH_RHI = [SAVE_RHI_1, SAVE_RHI_2, SAVE_RHI_3, SAVE_RHI_4, SAVE_RHI_5, SAVE_RHI_6]
 dias = [7,8,8,8,9,9]  # Day when the experiment was realized
 d_el = [5,5,7,7,7,7]  # Delay in EL associated to certain experiment
 OFF = 1 # 15m
@@ -433,7 +443,7 @@ for exp in range(1,7):
            plt.yticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
            plt.title("Main cells for " + exps[exp][i]["time"])
            title = exps[exp][i]["time"].replace(':','')
-           plt.savefig(PATH_PLOTS[exp-1] +'//'+title+'.png')
+           #plt.savefig(PATH_PLOTS[exp-1] +'//'+title+'.png')
           
                 
         except:
@@ -576,7 +586,7 @@ for exp in range(1,7):
                      #Radar variables
                      perf_max = exps[exp][i]['esfera'][j][1]
                      range_max = exps[exp][i]['esfera'][j][2]*15
-                     r_power = exps[exp][i]['esfera'][j][4]
+                    
                      
                      
                      #Experimental constant
@@ -608,46 +618,6 @@ for exp in range(1,7):
                      
                      h_drone = drone_h_arr[idx_sphere_f] - 2.9
                      l_drone = drone_s_arr[idx_sphere_f] 
-                     #Calculate the radar calibration constant...
-                     
-                     C_initial = r_power*(r**4)
-     
-                     Wr = np.exp(-((r-range_max)**2)/(2*sigma_r**2))
-                     
-                     
-                     
-                     C_after = (r_power*(r**4))/(Wr)
-                    
-                     ##
-                     
-                     y_d = y_drone[idx_sphere_f]
-                     x_d = x_drone[idx_sphere_f]
-                     e_esf = e_sph[idx_sphere_f]
-                     f_esf = f_sph[idx_sphere_f]
-                     roll = roll_p[idx_sphere_f]
-                     pitch = pitch_p[idx_sphere_f]
-                     
-                     
-                     theta_X_bar = float(i[-11:-7])
-                     theta_Y_bar = perf_max
-                     
-                     gamma = np.rad2deg(np.arctan((y_d)/(x_d)))
-                     theta =  OFFSET - gamma
-                     alfa =  np.rad2deg(np.arctan(f_esf/l))
-                     
-                     theta_X = theta + alfa
-                     theta_Y = np.rad2deg(np.arctan((h)/l))
-                     
-                     Wb = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2)     -((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
-                     Wb_x = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2))
-                     Wb_y = np.exp(-((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
-                     
-                   
-                     C_after_wb = (r_power*(r**4))/(Wr*Wb)
-                     
-                     C_after_wb_only = (r_power*(r**4))/(Wb)
-                     
-                     
                      
                      
                      # RHI Plot
@@ -671,13 +641,6 @@ for exp in range(1,7):
                      
                      power_f = np.array(corr_power)
                      
-                     
-                     
-                     
-                     
-                     
-                     
-                     
                      r2, el_rad2 = np.meshgrid(n_ran, n_ele/180*np.pi)
                      r21 = r2[:,-33:]
                      el_rad21 = el_rad2[:,-33:]
@@ -695,10 +658,10 @@ for exp in range(1,7):
                      axt = 0.04*np.ones(50)
                      
                      
-                     ax.plot(l/1000,h/1000,'o-',color="red",linewidth=15)
+                     ax.plot(l/1000,h/1000,'o-',color="red",linewidth=24)
                      ax.plot(l_drone/1000,h_drone/1000,'o-',color="red",linewidth=15)
                      
-                     ax.set(ylim=(0,0.3))
+                     ax.set(ylim=(0,0.15))
                      ax.set(xlim=(0,0.5))
                      plt.title("RHI para " + str(exp) + " " +  i)
                      plt.xlabel("Rango [Km]")
@@ -707,9 +670,58 @@ for exp in range(1,7):
                      title = title.replace("  ", "x")
                      title = title.replace("-","")
                      title = title.replace(":","")
-                     #plt.savefig(PATHPLOT+"\\"+title+".png")
+                     plt.savefig(PATH_RHI[exp-1]+'//'+i[-11:-7]+'//'+title+'.png')
                     
-                
+                    
+                     # New RWF BWF
+                     
+                     #maxvalInRows = np.amax(power_f, axis=1)
+                     maxRow = np.argmax(power_f[14], axis = 0)
+                     #maxCol = np.argmax(power_f[14], axis = 0)
+                     
+                     
+                     r_o = 217.5    
+                    
+                     #r_power = power_f[maxRow, 14]
+                     r_power = 2
+                     #Calculate the radar calibration constant...
+                     
+                     C_initial = r_power*(r**4)
+     
+                     Wr = np.exp(-((r-r_o)**2)/(2*sigma_r**2))
+                     
+                     C_after = (r_power*(r**4))/(Wr)
+                    
+                     ##
+                     
+                     y_d = y_drone[idx_sphere_f]
+                     x_d = x_drone[idx_sphere_f]
+                     e_esf = e_sph[idx_sphere_f]
+                     f_esf = f_sph[idx_sphere_f]
+                     roll = roll_p[idx_sphere_f]
+                     pitch = pitch_p[idx_sphere_f]
+                     
+                     
+                     theta_X_bar = float(i[-11:-7])
+                     theta_Y_bar = exps[exp][i]['elevation'][maxRow]
+                     
+                     gamma = np.rad2deg(np.arctan((y_d)/(x_d)))
+                     theta =  OFFSET - gamma
+                     alfa =  np.rad2deg(np.arctan(f_esf/l))
+                     
+                     theta_X = theta + alfa
+                     theta_Y = np.rad2deg(np.arctan((h)/l))
+                     
+                     Wb = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2)     -((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+                     Wb_x = np.exp(-((theta_X-theta_X_bar)**2)/(2*sigma_xy**2))
+                     Wb_y = np.exp(-((theta_Y-theta_Y_bar)**2)/(2*sigma_xy**2))
+                     
+                  
+                   
+                     C_after_wb = (r_power*(r**4))/(Wr*Wb)
+                     
+                     C_after_wb_only = (r_power*(r**4))/(Wb)
+                     
                      #Adding each processed variable from a sample to a list 
                      date.append(exps[exp][i]['time'])
                      range_r.append(r)
@@ -721,9 +733,10 @@ for exp in range(1,7):
                      theta_y.append(theta_Y)
                      theta_x_bar.append(theta_X_bar)
                      theta_x.append(theta_X)
-                     ro_max.append(range_max)
-                     power.append(r_power)
-                     power_db.append(10*np.log10(r_power))
+                     
+                     ro_max.append(r_o)
+                     power.append(10**(r_power/10))
+                     power_db.append(r_power)
                      
                      c_initial.append(C_initial)
                      c_initial_db.append(10*np.log10(C_initial))
@@ -753,21 +766,21 @@ for exp in range(1,7):
     
     
     
-    # data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
-    #         c_initial, c_initial_db, c_after, c_after_db,c_after_wb_only, c_after_wb_only_db,
-    #         c_after_wb, c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y,
-    #         exp_const_l, exp_const_l_db]      
+    data = [date, file, roll_l, pitch_l, azimuth, ro_max, range_r, power, power_db, wr, wb, 
+            c_initial, c_initial_db, c_after, c_after_db,c_after_wb_only, c_after_wb_only_db,
+            c_after_wb, c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y, wb_x, wb_y,
+            exp_const_l, exp_const_l_db]      
    
-    # df = pd.DataFrame(data)
-    # df = df.transpose()
+    df = pd.DataFrame(data)
+    df = df.transpose()
 
     
-    # df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
-    #               'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after Wr', 
-    #               'C_after Wr [dB]','C_after Wb Only','C_after Wb Only [dB]','C_after Wb', 
-    #               'C_after Wb [dB]','Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 
-    #               'Wb y','Exp Constant', 'Exp Constant [dB]']
-    # df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
+    df.columns = ['Datetime','Filename','Roll','Pitch','Azimuth', 'r_o','range','R Power [W]',
+                  'R Power [dB]','RWF', 'BWF','C_initial', 'C_initial [dB]','C_after Wr', 
+                  'C_after Wr [dB]','C_after Wb Only','C_after Wb Only [dB]','C_after Wb', 
+                  'C_after Wb [dB]','Theta X bar', 'Theta X','Theta Y bar','Theta Y','Wb x', 
+                  'Wb y','Exp Constant', 'Exp Constant [dB]']
+    df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_rhi'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
     
     #%%
     

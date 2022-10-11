@@ -130,9 +130,14 @@ def get_coords(ang, rangearr):
         
     """
     
-    center = 15*rangearr
-    inner_center = 15*rangearr - 7.5
-    outer_center = 15*rangearr + 7.5
+    c#enter = 15*rangearr
+    #inner_center = 15*rangearr - 7.5
+    #outer_center = 15*rangearr + 7.5
+    
+    center = 15*rangearr + 7.5
+    inner_center = 15*rangearr  
+    outer_center = 15*rangearr + 15
+    
     
     upper_left_x = inner_center*(np.cos(np.deg2rad(ang+0.9)))
     upper_left_y = inner_center*(np.sin(np.deg2rad(ang+0.9)))
@@ -690,3 +695,55 @@ for exp in range(1,7):
     df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 'BWF',
                   'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]']
     df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
+#%%
+
+PATHPLOT =r'C:\Users\GIBS\Documents\Experimentos\Experimento2\Plots_ch0'
+import numpy as np
+import matplotlib.pyplot as plt
+import h5py as h5
+l_power = []
+a = 6374
+ae = 4/3*a
+
+for i in dict_3deg_time.keys():
+
+    file = h5.File(PATH+"\\"+i, 'r')
+    
+    n_ele = file['Metadata']['elevation']
+    n_ran = file['Metadata']['range']
+    n_azi = file['Metadata']['azimuth']
+    
+    power = file['Data']['data_param']['channel00']
+    
+    Data_Arr = 10*np.log10(power[:,-33:])
+    #Data_Arr[0:51,:10] = -55.0
+    #Data_Arr[Data_Arr > -17] = -55.0
+    l_power.append(Data_Arr)
+    n_ran2 = np.array(n_ran)
+    n_ele2 = np.array(n_ele)
+    
+    
+    r2, el_rad2 = np.meshgrid(n_ran2, n_ele2/180*np.pi)
+    
+    r21 = r2[:,-33:]
+    el_rad21 = el_rad2[:,-33:]
+    ads = np.multiply(r21,np.sin(el_rad21))
+    ads2 = np.multiply(r21,np.cos(el_rad21))
+    
+    y = (r21**2 + ae**2 + 2*ads*ae)**0.5 - ae
+    x = ae*np.arcsin(np.divide(ads2,ae+y))
+    
+    
+    fig, ax = plt.subplots(1,1,figsize=(15,15))
+    ax.pcolormesh(x,y,Data_Arr,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
+    ax.set(ylim=(0,0.1))
+    ax.set(xlim=(0,0.5))
+    plt.title("RHI para " + dict_3deg_time[i])
+    plt.xlabel("Rango [Km]")
+    plt.ylabel("Altura [m]")
+    title = dict_3deg_time[i]
+    title = title.replace("  ", "x")
+    title = title.replace("-","")
+    title = title.replace(":","")
+    plt.savefig(PATHPLOT+"\\"+title+".png")
+    
