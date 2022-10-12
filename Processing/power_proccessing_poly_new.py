@@ -57,7 +57,8 @@ PATH_ALL = r'C:\Users\GIBS\Documents\Experimentos\Exp5_Final\Drone\plots_drone'
 PATH_PLOTS = [SAVE_PATH_1, SAVE_PATH_2, SAVE_PATH_3, SAVE_PATH_4, SAVE_PATH_5, SAVE_PATH_6]
 
 dias = [7,8,8,8,9,9]  # Day when the experiment was realized
-d_el = [5,5,7,7,7,7]  # Delay in EL associated to certain experiment
+#d_el = [5,5,7,7,7,7]  # Delay in EL associated to certain experiment
+d_el = [4,4,6,6,6,6]  # Delay in EL associated to certain experiment
 OFF = 1 # 15m
 exps = {}
 
@@ -130,7 +131,7 @@ def get_coords(ang, rangearr):
         
     """
     
-    c#enter = 15*rangearr
+    #center = 15*rangearr
     #inner_center = 15*rangearr - 7.5
     #outer_center = 15*rangearr + 7.5
     
