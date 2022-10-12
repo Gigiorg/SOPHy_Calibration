@@ -127,7 +127,7 @@ def get_coords(ang, rangearr):
         
     """
     
-    center = 15*rangearr
+    center = 15*rangearr + 7.5
     first_range = center*np.cos(np.deg2rad(ang))
     alt_centro = center*np.sin(np.deg2rad(ang))
     alt_sup = center*np.sin(np.deg2rad(ang+0.9))
@@ -138,8 +138,9 @@ def get_coords(ang, rangearr):
     a = [center - 7.5, alt_inf, dif_alt, alt_centro]
 
     return a
-
+'''
 def get_coords(ang, rangearr):    
+    
     
     first_range = (15*rangearr)*np.cos(np.deg2rad(ang))
     center = first_range
@@ -152,6 +153,25 @@ def get_coords(ang, rangearr):
     a = [center - 7.5, alt_inf, dif_alt, alt_centro]
 
     return a
+'''
+
+
+def get_coords(ang, rangearr):    
+    
+    cen_te = 15*rangearr + 7.5
+    
+    first_range = (cen_te)*np.cos(np.deg2rad(ang))
+    center = cen_te
+    alt_centro = (cen_te)*np.sin(np.deg2rad(ang))
+    alt_sup = (cen_te)*np.sin(np.deg2rad(ang+0.9))
+    alt_inf = (cen_te)*np.sin(np.deg2rad(ang-0.9))
+    
+    dif_alt = alt_sup - alt_inf
+        
+    a = [center - 7.5, alt_inf, dif_alt, alt_centro]
+
+    return a
+
 
 #Iterate over each experiment
 for exp in PATHS:
