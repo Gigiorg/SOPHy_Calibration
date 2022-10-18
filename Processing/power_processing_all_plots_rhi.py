@@ -652,7 +652,9 @@ for exp in range(1,7):
                      x = ae*np.arcsin(np.divide(ads2,ae+y))
                      
                      fig, ax = plt.subplots(1,1,figsize=(15,15))
-                     ax.pcolormesh(x,y,power_f,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
+                     
+                     #mesh = ax.pcolormesh(x,y,power_f,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
+                     ax.pcolormesh(x,y,power_f,shading='flat', vmin=-60, vmax=0, edgecolors='k', linewidths=1)
                      
                      axq = np.linspace(0, 0.5, 50)
                      axt = 0.04*np.ones(50)
@@ -666,13 +668,15 @@ for exp in range(1,7):
                      plt.title("RHI para " + str(exp) + " " +  i)
                      plt.xlabel("Rango [Km]")
                      plt.ylabel("Altura [m]")
+                     plt.colorbar(ax.pcolormesh(x,y,power_f,shading='flat', vmin=-60, vmax=0, edgecolors='k', linewidths=1))
+                     plt.jet()
                      title = i
                      title = title.replace("  ", "x")
                      title = title.replace("-","")
                      title = title.replace(":","")
                      plt.savefig(PATH_RHI[exp-1]+'//'+i[-11:-7]+'//'+title+'.png')
                     
-                    
+                     plt.legend(['Dos','Tres'])
                      # New RWF BWF
                      
                      #maxvalInRows = np.amax(power_f, axis=1)

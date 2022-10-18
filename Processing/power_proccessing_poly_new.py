@@ -491,7 +491,7 @@ for exp in range(1,7):
            #Pr*(r**4)
            for j in exps[exp][i]['esfera'].keys():
                
-               h = esf_h_arr[idx_sphere_f]
+               h = esf_h_arr[idx_sphere_f] - 2.9
                s = esf_s_arr[idx_sphere_f]
                
                r = np.sqrt(h**2 + s**2)
@@ -561,6 +561,22 @@ for exp in range(1,7):
                esfera_c = get_coords(corr_perf,range_perf)
                ax.add_patch(Polygon(esfera_c[2],edgecolor = 'black', facecolor = color, fill=True))
                plt.plot(esfera_c[0], esfera_c[1],'xw', markersize = 12)
+              
+                
+               polygon1 = [ tuple(esfera_c[2][0]), tuple(esfera_c[2][1]), tuple(esfera_c[2][2]), tuple(esfera_c[2][3]) ]
+                     
+               p = (esf_s_arr[idx_sphere_f], esf_h_arr[idx_sphere_f]-2.9)
+                
+               if (is_inside_polygon(points = polygon1, p = p)):
+                   potentials.update({j:"SI"})
+               else:
+                   potentials.update({j:"NO"})
+                   
+               
+               
+               
+               
+               
                '''
                power =  exps[exp][i]['powerH'].shape[0]
                    
@@ -572,7 +588,7 @@ for exp in range(1,7):
            
                '''
            
-            
+           exps[exp][i].update({"meds":potentials})
            ''' 
            if( len(exps[exp][i]['esfera']) != 0): 
                max_power_sph_idx = rpower_sphere.index(max(rpower_sphere)) 
@@ -649,7 +665,7 @@ for exp in range(1,7):
 
 OFFSET = 38.5                                              # Offset value for the Azimuth correction 
 
-beam_width_deg = np.deg2rad(1.8)                           # Beam width of the transmitting antenna [°]
+beam_width_deg = 1.8                                       # Beam width of the transmitting antenna [°]
 beam_width = np.deg2rad(1.8)                               # Beam width of the transmitting antenna [rad]
 pulse_width = 0.1e-6                                       # Pulse width of the transmitted pulse [s]
 c = 3e8                                                    # Speed of light
@@ -679,10 +695,36 @@ L_total = 10**( (2*alfa + 2*L_circu + 2*L_wg + 4*L_adap)/10)            # Total 
 L_total_db = 2*alfa + 2*L_circu + 2*L_wg + 4*L_adap
 
 
-def calc_RCC():
+def get_Constant(Pt, G, Glna, lamb, rcs, L):
+    
+    
+    
+    """
+    Obtain the most important columns in the dataset from a certain hdf5 file for an experiment.
+    
+    Arguments:
         
-    C_sph = (t_power*(antenna_gain**2)*(Glna)*(w_length**2))/(((4*np.pi)**3)*(L_total**2))
-    return C_sph
+             PATH: path of a certain hdf5 file (string)
+        
+    
+    Returns:
+         
+        a list with the most import columns from the experiment
+        
+        a[0]: datetime series
+        a[1]: height of the drone series 
+        a[2]: distance from the radar to the drone series 
+        a[3]: height of the sphere series 
+        a[4]: distance from the radar to the sphere series 
+        a[5]: distance from the radar to the drone within the x component series 
+        a[6]: distance from the radar to the drone within the y component series 
+        a[7]: distance from the drone to the sphere within its relative x component series 
+        a[8]: distance from the drone to the sphere within its relative y component series 
+        
+    """
+        
+    C_exp = (Pt*(G**2)*Glna*(lamb**2)*rcs)/(((4*np.pi)**3)*(L))
+    return C_exp
 
 #Iterate over each experiment
 for exp in range(1,7):
@@ -719,13 +761,21 @@ for exp in range(1,7):
     c_after_wb = []
     c_after_wb_db = []
     
+    theta_y = []
+    theta_y_bar = []
+    theta_x = []
+    theta_x_bar = []
+    
+    exp_const_l = []
+    exp_const_l_db = []
+    
 
     #Iterate over each file/sample
     for i in list(exps[exp].keys()):
         try:
              
             for j in list(exps[exp][i]['meds'].keys()):
-                 if(exps[exp][i]['meds'][j]['DENTRO'] == "SI"):
+                 if(exps[exp][i]['meds'][j] == "SI"):
                      #idx_hit = list(exps[exp][i]['meds'].keys()).index(j)
                      
                      #Radar variables
@@ -733,6 +783,10 @@ for exp in range(1,7):
                      range_max = exps[exp][i]['esfera'][j][2]*15
                      r_power = exps[exp][i]['esfera'][j][4]
                      
+                     #Experimental constant
+                     
+                     exp_const = get_Constant(t_power, antenna_gain, Glna, w_length, rcs, L_total)
+                     exp_const_db = 10*np.log10(exp_const)
                      
                      #Sphere time
                      
@@ -760,7 +814,7 @@ for exp in range(1,7):
                      
                      C_initial = r_power*(r**4)
      
-                     Wr = np.exp(-((r-range_max)**2)/(2*sigma_r**2))
+                     Wr = np.exp(-((r-(range_max+7.5))**2)/(2*sigma_r**2))
                      
                      
                      
@@ -793,7 +847,7 @@ for exp in range(1,7):
                      range_r.append(r)
                      wr.append(Wr)
                      wb.append(Wb)
-                     ro_max.append(range_max)
+                     ro_max.append(range_max + 7.5)
                      power.append(r_power)
                      power_db.append(10*np.log10(r_power))
                      
@@ -807,6 +861,18 @@ for exp in range(1,7):
                      
                      c_after_wb.append(C_after_wb)
                      c_after_wb_db.append(10*np.log10(C_after_wb))
+                     
+                     
+                     ###
+                     theta_x_bar.append(theta_X_bar)
+                     theta_x.append(theta_X)
+                     
+                     theta_y_bar.append(theta_Y_bar)
+                     theta_y.append(theta_Y)
+                     ###
+                     exp_const_l.append(exp_const)
+                     exp_const_l_db.append(exp_const_db)
+                     
                      file.append(i)
                     
              
@@ -817,15 +883,17 @@ for exp in range(1,7):
     
     data = [date, file,azimuth, ro_max, range_r, power, power_db, wr, wb, 
             c_initial, c_initial_db, c_after, c_after_db, c_after_wb, 
-            c_after_wb_db]  
+            c_after_wb_db, theta_x_bar, theta_x, theta_y_bar, theta_y,
+            exp_const_l, exp_const_l_db]  
    
     df = pd.DataFrame(data)
     df = df.transpose()
 
     
     df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Power [dB]','RWF', 'BWF',
-                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]']
-    df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
+                  'C_initial', 'C_initial [dB]','C_after', 'C_after [dB]','C_after_wb', 'C_after_wb [dB]',
+                  'Theta x bar', 'Theta x', 'Theta y bar','Theta y', 'Exp Constant', 'Exp Costant [dB]']
+    df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb_new'+'\\'+'Table_exp'+str(exp)+'.xlsx', sheet_name='tabla')
 #%%
 
 PATHPLOT =r'C:\Users\GIBS\Documents\Experimentos\Experimento2\Plots_ch0'
@@ -1021,4 +1089,337 @@ if (is_inside_polygon(points = polygon1, p = p)):
    print ('Yes')
 else:
    print ('No')
+
+#%%
+expe = list(exps[2].keys())  
+offset = [d_el[1]]*len(list(exps[2].keys()))
+
+data = [expe, offset]
+
+df = pd.DataFrame(data)
+df = df.transpose()
+
+    
+df.columns = ['Experiment','Offset in El (Samples)']
+
+
+df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing'+'\\'+'Exp2_delay.xlsx', sheet_name='tabla')
+#%%
+
+df = pd.ExcelFile(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing'+'\\'+'Exp2_delay.xlsx').parse('tabla')
+
+delay_exp2 = df['Offset_corr2']
+
+####
+time_pos = getdataset_Exp(PATHS_TAB[1])[0]
+drone_h_arr = getdataset_Exp(PATHS_TAB[1])[1]
+drone_s_arr = getdataset_Exp(PATHS_TAB[1])[2]
+
+esf_h_arr = getdataset_Exp(PATHS_TAB[1])[3]
+esf_s_arr = getdataset_Exp(PATHS_TAB[1])[4]
+
+
+#count_xp = 0
+#Iterate over each file/sample
+for i in range(len(list(exps[2].keys()))):
+    profiles_H = []
+    profiles_H_fxd = []
+    powerH = exps[2][list(exps[2].keys())[i]]['powerH']
+    
+    #Iterate over each row from the power dataset of the sample 
+    for j in range(powerH.shape[0]):
+        if (len(np.where(powerH[j] > -40.0)[0])!= 0 and powerH[j][10]<-25.):
+            
+            profiles_H.append([exps[2][list(exps[2].keys())[i]]['elevation'][j], list(np.where(powerH[j] > -40.0)[0])])
+            profiles_H_fxd.append([exps[2][list(exps[2].keys())[i]]['elevation'][j-delay_exp2[i]], list(np.where(powerH[j] > -40.0)[0])])
+            
+        else:
+            profiles_H.append([exps[2][list(exps[2].keys())[i]]['elevation'][j], []])
+            profiles_H_fxd.append([exps[2][list(exps[2].keys())[i]]['elevation'][j-delay_exp2[i]], []])
+    
+    exps[2][list(exps[2].keys())[i]].update({"profiles_H":profiles_H})
+    exps[2][list(exps[2].keys())[i]].update({"profiles_H_fxd":profiles_H_fxd})
+    
+    count = 0
+    drone = {}
+    esfera = {}
+    rpower_sphere = []
+    rpower_drone = []
+    
+    
+ 
+
+    #Separation of power samples associated to the sphere / UAV
+    
+    for j in range(len(exps[2][list(exps[2].keys())[i]]["profiles_H"])):
+        
+        if count == 0 :
+            if(len(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]) != 0):
+                for k in exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]:
+                    drone.update({str(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0]) + " " + str(k) : [exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0],
+                                                                                      exps[2][list(exps[2].keys())[i]]["profiles_H"][j-delay_exp2[i]][0], 
+                                                                                     k, 
+                                                                                     j, 
+                                                                                     10**(exps[2][list(exps[2].keys())[i]]['powerH'][j][k]/10)]})
+
+                count = 1
+                
+        if count == 1:
+            if(len(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]) != 0):
+                for k in exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]:
+                    drone.update({str(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0]) + " " + str(k) : [exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0],
+                                                                                     exps[2][list(exps[2].keys())[i]]["profiles_H"][j-delay_exp2[i]][0], 
+                                                                                     k, 
+                                                                                     j, 
+                                                                                     10**(exps[2][list(exps[2].keys())[i]]["powerH"][j][k]/10)]})
+                    
+            else:
+                count = 2
+                
+        if count == 2:
+            if(len(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]) != 0):
+                count = 3
+        
+        if count == 3:
+            if(len(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]) != 0):
+                for k in exps[2][list(exps[2].keys())[i]]["profiles_H"][j][1]:    
+                    esfera.update({str(exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0]) + " " + str(k) : [exps[2][list(exps[2].keys())[i]]["profiles_H"][j][0],
+                                                                                      exps[2][list(exps[2].keys())[i]]["profiles_H"][j-delay_exp2[i]][0], 
+                                                                                      k, 
+                                                                                      j, 
+                                                                                      10**(exps[2][list(exps[2].keys())[i]]["powerH"][j][k]/10)]})
+                    rpower_sphere.append(10**(exps[2][list(exps[2].keys())[i]]["powerH"][j][k]/10))
+                    
+    exps[2][list(exps[2].keys())[i]].update({"esfera":esfera})
+    exps[2][list(exps[2].keys())[i]].update({"drone":drone})
+    exps[2][list(exps[2].keys())[i]].update({"rpower_sph":rpower_sphere})
+    exps[2][list(exps[2].keys())[i]].update({"rpower_dro":rpower_drone})
+    
+
+    #Updating the dict with the maximum received power associated to the sphere 
+    if len(rpower_sphere) != 0:    
+        exps[2][list(exps[2].keys())[i]].update({"maxpower_sph":max(rpower_sphere)})
+    else:                                                                                                 
+        exps[2][list(exps[2].keys())[i]].update({"maxpower_sph":0})
+        
+    for j in list(exps[2][list(exps[2].keys())[i]]['drone'].keys()):
+        rpower_drone.append(exps[2][list(exps[2].keys())[i]]['drone'][j][-1])
+        
+        
+    #Plotting each sample with the estimated position of the sphere and the max volume
+    fig, ax = plt.subplots(1,1,figsize=(15,15))
+    
+    #Timestamp from the h5 file
+    date2, time2 = exps[2][list(exps[2].keys())[i]]['time'].split("  ")
+    hh,mm,ss = time2.split(":")
+    time_base = datetime.datetime(2022, 5, dias[1], int(hh), int(mm), int(ss))
+    #print(time_base)
+     
+    #Highest profile (Upper position of the pedestal in RHI mode)
+    perf_max = exps[2][list(exps[2].keys())[i]]['profiles_H'][0][0]
+    
+   
+    
+    try:
        
+       if( len(exps[2][list(exps[2].keys())[i]]['drone']) != 0):
+           max_power_drone_idx = rpower_drone.index(max(rpower_drone))
+           max_drone_refer = list(exps[2][list(exps[2].keys())[i]]['drone'].keys())[max_power_drone_idx]
+           dif_ang_drone = round((perf_max-exps[2][list(exps[2].keys())[i]]['drone'][max_drone_refer][1])/10,1)
+           dif_secs_drone = math.floor(dif_ang_drone)
+           time_drone = time_base + datetime.timedelta(seconds = dif_secs_drone)
+           idx_drone = list(time_pos).index(time_drone)
+           #print(idx_drone)
+           plt.plot(drone_s_arr[idx_drone],drone_h_arr[idx_drone]-2.9,'ko', linewidth=2, markersize=10)
+            
+           #Tiempo referencial para la esfera y ploteo
+       if( len(exps[2][list(exps[2].keys())[i]]['esfera']) != 0):   
+           max_power_sph_idx = rpower_sphere.index(max(rpower_sphere))
+           max_sph_refer = list(exps[2][list(exps[2].keys())[i]]['esfera'].keys())[max_power_sph_idx]
+           dif_ang_esf = round((perf_max-exps[2][list(exps[2].keys())[i]]['esfera'][max_sph_refer][1])/10,1)
+           dif_secs_esf = math.floor(dif_ang_esf)
+           dif_decs_esf = int(round(math.modf(dif_ang_esf)[0],1)*10)
+           time_sphere = time_base + datetime.timedelta(seconds = dif_secs_esf)
+           idx_sphere = list(time_pos).index(time_sphere)
+           idx_sphere_f = int(idx_sphere + 10*dif_decs_esf/2)
+           
+           plt.plot(esf_s_arr[idx_sphere_f],esf_h_arr[idx_sphere_f]-2.9,'ko', linewidth=2, markersize=10)
+            
+       potentials = {}
+       potentials_d = {}
+       
+       
+       #Pr*(r**4)
+       for j in exps[2][list(exps[2].keys())[i]]['esfera'].keys():
+           
+           h = esf_h_arr[idx_sphere_f] - 2.9
+           s = esf_s_arr[idx_sphere_f]
+           
+           r = np.sqrt(h**2 + s**2)
+           
+           prrangef = exps[2][list(exps[2].keys())[i]]['esfera'][j][4]*(r**4)
+           prrangeflog = 10*np.log10(prrangef)
+           
+           exps[2][list(exps[2].keys())[i]]['esfera'][j].append(r)
+           exps[2][list(exps[2].keys())[i]]['esfera'][j].append(prrangef)
+           exps[2][list(exps[2].keys())[i]]['esfera'][j].append(prrangeflog)
+       
+
+       for j in exps[2][list(exps[2].keys())[i]]['drone'].keys():
+           
+           corr_perf = exps[2][list(exps[2].keys())[i]]['profiles_H'][ exps[2][list(exps[2].keys())[i]]['drone'][j][3]-delay_exp2[i]][0]
+           range_perf = exps[2][list(exps[2].keys())[i]]['drone'][j][2]
+           #esfera_c = get_coords(j[1],k)
+           drone_c = get_coords(corr_perf,range_perf)
+           ax.add_patch(Polygon(drone_c[2], edgecolor = 'black', facecolor = 'lightblue', fill=True))
+           plt.plot(drone_c[0],drone_c[1],'xw', markersize = 12)
+           '''
+           power =  exps[exp][i]['powerH'].shape[0]
+           potentials_d.update({j:{"err_s":np.abs(drone_c[0] + 7.5 -drone_s_arr[idx_drone]),
+                                 "err_h":np.abs(drone_c[3] - (drone_h_arr[idx_drone] -2.9)),
+                                 "med_h":drone_c[3]-drone_c[1]}})    
+           '''
+           
+       #exps[2][list(exps[2].keys())[i]].update({"meds_drone":potentials_d})
+       
+       if( len(exps[2][list(exps[2].keys())[i]]['drone']) != 0): 
+           max_power_drone_idx = rpower_drone.index(max(rpower_drone)) 
+           max_drone_refer = list(exps[2][list(exps[2].keys())[i]]['drone'].keys())[max_power_drone_idx]
+           max_range =  exps[2][list(exps[2].keys())[i]]['drone'][max_drone_refer][2]
+           max_perf = exps[2][list(exps[2].keys())[i]]['drone'][max_drone_refer][1]
+           drone_max = get_coords(max_perf, max_range)
+           ax.add_patch(Polygon(drone_max[2], edgecolor = 'black', facecolor = 'yellow', fill=True))
+           plt.plot(drone_max[0], drone_max[1],'xw', markersize = 12)
+          
+          
+           
+       for j in exps[2][list(exps[2].keys())[i]]['esfera'].keys():
+           
+          #
+          
+           powerrfo = exps[2][list(exps[2].keys())[i]]['esfera'][j][-1]
+          
+
+           if (powerrfo < 45.0): 
+              color = "aquamarine"
+              
+           elif(45.0 < powerrfo < 55.0): 
+              color = "lime"
+              
+           elif(55.0 < powerrfo < 65.0): 
+              color = "yellow" 
+              
+           elif(65.0 < powerrfo < 75.0): 
+              color = "orange"    
+             
+           elif(75.0 < powerrfo < 85.0): 
+              color = "firebrick"       
+        
+            
+           corr_perf = exps[2][list(exps[2].keys())[i]]['profiles_H'][ exps[2][list(exps[2].keys())[i]]['esfera'][j][3]-delay_exp2[i]][0]
+           range_perf = exps[2][list(exps[2].keys())[i]]['esfera'][j][2]
+           #esfera_c = get_coords(j[1],k)
+           esfera_c = get_coords(corr_perf,range_perf)
+           ax.add_patch(Polygon(esfera_c[2],edgecolor = 'black', facecolor = color, fill=True))
+           plt.plot(esfera_c[0], esfera_c[1],'xw', markersize = 12)
+          
+            
+           polygon1 = [ tuple(esfera_c[2][0]), tuple(esfera_c[2][1]), tuple(esfera_c[2][2]), tuple(esfera_c[2][3]) ]
+                 
+           p = (esf_s_arr[idx_sphere_f], esf_h_arr[idx_sphere_f]-2.9)
+            
+           if (is_inside_polygon(points = polygon1, p = p)):
+               potentials.update({j:"SI"})
+           else:
+               potentials.update({j:"NO"})
+               
+           
+           
+           
+           
+           
+           '''
+           power =  exps[exp][i]['powerH'].shape[0]
+               
+           potentials.update({j:{"err_s":np.abs(esfera_c[0] + 7.5 -esf_s_arr[idx_sphere_f]),
+                                 "err_h":np.abs(esfera_c[3] - (esf_h_arr[idx_sphere_f] -2.9)),
+                                 "med_h":esfera_c[3]-esfera_c[1]}})
+           
+       exps[exp][i].update({"meds":potentials})
+       
+           '''
+       
+       exps[2][list(exps[2].keys())[i]].update({"meds":potentials})
+       ''' 
+       if( len(exps[exp][i]['esfera']) != 0): 
+           max_power_sph_idx = rpower_sphere.index(max(rpower_sphere)) 
+           max_sph_refer = list(exps[exp][i]['esfera'].keys())[max_power_sph_idx]
+           max_range =  exps[exp][i]['esfera'][max_sph_refer][2]
+           max_perf = exps[exp][i]['esfera'][max_sph_refer][1]
+          
+           
+           esfera_max = get_coords(max_perf, max_range)
+           ax.add_patch(Polygon(esfera_max[2],edgecolor = 'black', facecolor = 'green', fill=True))
+          
+           plt.plot(esfera_max[0], esfera_max[1],'xw', markersize = 12)
+       '''
+           
+       si_cta = 0
+       dr_cta = 0
+       
+       #count_xp += 1
+       '''
+       
+       #Determine the presence of the sphere inside a volume cell
+       for x in list(exps[exp][i]['meds'].keys()):
+             error_s = exps[exp][i]['meds'][x]['err_s']   
+             error_h = exps[exp][i]['meds'][x]['err_h']   
+             med_h = exps[exp][i]['meds'][x]['med_h']
+             
+             if(error_s < 7.5 and  error_h < med_h):
+                 exps[exp][i]['meds'][x].update({"DENTRO":"SI"})
+                 si_cta += 1
+                 
+             else:
+                 exps[exp][i]['meds'][x].update({"DENTRO":"NO"})
+       
+       
+       #Determine the presence of the drone inside a volume cell
+       for x in list(exps[exp][i]['meds_drone'].keys()):
+             error_s = exps[exp][i]['meds_drone'][x]['err_s']   
+             error_h = exps[exp][i]['meds_drone'][x]['err_h']   
+             med_h = exps[exp][i]['meds_drone'][x]['med_h']
+             
+             if(error_s < 7.5 and  error_h < med_h):
+                 exps[exp][i]['meds_drone'][x].update({"DENTRO":"SI"})
+                 dr_cta += 1
+                 
+             else:
+                 exps[exp][i]['meds_drone'][x].update({"DENTRO":"NO"})
+       
+       
+       exps[exp][i].update({"yes":si_cta})
+       exps[exp][i].update({"yes_dr":dr_cta})          
+       '''
+       
+       scale_img = mpimg.imread('scale.png')
+       imagebox = OffsetImage(scale_img, zoom=0.5)
+       ab = AnnotationBbox(imagebox, (60, 30))
+       ax.add_artist(ab)
+       plt.xlabel("S [m]")
+       plt.ylabel("H [m]")
+       plt.grid()
+       plt.draw()
+       plt.plot()
+       plt.xticks([0,40,80,120,160,200,240,280])
+       plt.yticks([0,10,20,30,40,50,60,70,80,90,100,110,120,130,140])
+       plt.title("Echoes for " + exps[2][list(exps[2].keys())[i]]["time"])
+       title = exps[2][list(exps[2].keys())[i]]["time"].replace(':','')
+       plt.savefig(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\Plots_exp_2'+'//'+list(exps[2].keys())[i][-11:-7]+'//'+title+'.png')
+           
+       #count_xp += 1
+            
+    except:
+        pass
+
+

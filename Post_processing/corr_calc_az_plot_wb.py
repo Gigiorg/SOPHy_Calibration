@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 #Post - processing
 
-PATH_TABLES = r"C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb"
+PATH_TABLES = r"C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing\Tables_after_wr_wb_fixed"
 
 
 
