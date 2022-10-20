@@ -1108,7 +1108,7 @@ df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing'+'\
 
 df = pd.ExcelFile(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing'+'\\'+'Exp2_delay.xlsx').parse('tabla')
 
-delay_exp2 = df['Offset_corr2']
+delay_exp2 = df['Offset_corr']
 
 ####
 time_pos = getdataset_Exp(PATHS_TAB[1])[0]
