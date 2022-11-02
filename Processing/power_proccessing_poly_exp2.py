@@ -1250,57 +1250,7 @@ df_sa.columns = ['Datetime','Filename','Count','Roll','Pitch','Yaw','Azimuth', '
 #df_sa.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP2\Table_exp2.xlsx', sheet_name='tabla')
         
 
-#%%
 
-PATHPLOT =r'C:\Users\GIBS\Documents\Experimentos\Experimento2\Plots_ch0'
-import numpy as np
-import matplotlib.pyplot as plt
-import h5py as h5
-l_power = []
-a = 6374
-ae = 4/3*a
-
-for i in dict_3deg_time.keys():
-
-    file = h5.File(PATH+"\\"+i, 'r')
-    
-    n_ele = file['Metadata']['elevation']
-    n_ran = file['Metadata']['range']
-    n_azi = file['Metadata']['azimuth']
-    
-    power = file['Data']['data_param']['channel00']
-    
-    Data_Arr = 10*np.log10(power[:,-33:])
-    #Data_Arr[0:51,:10] = -55.0
-    #Data_Arr[Data_Arr > -17] = -55.0
-    l_power.append(Data_Arr)
-    n_ran2 = np.array(n_ran)
-    n_ele2 = np.array(n_ele)
-    
-    
-    r2, el_rad2 = np.meshgrid(n_ran2, n_ele2/180*np.pi)
-    
-    r21 = r2[:,-33:]
-    el_rad21 = el_rad2[:,-33:]
-    ads = np.multiply(r21,np.sin(el_rad21))
-    ads2 = np.multiply(r21,np.cos(el_rad21))
-    
-    y = (r21**2 + ae**2 + 2*ads*ae)**0.5 - ae
-    x = ae*np.arcsin(np.divide(ads2,ae+y))
-    
-    
-    fig, ax = plt.subplots(1,1,figsize=(15,15))
-    ax.pcolormesh(x,y,Data_Arr,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
-    ax.set(ylim=(0,0.1))
-    ax.set(xlim=(0,0.5))
-    plt.title("RHI para " + dict_3deg_time[i])
-    plt.xlabel("Rango [Km]")
-    plt.ylabel("Altura [m]")
-    title = dict_3deg_time[i]
-    title = title.replace("  ", "x")
-    title = title.replace("-","")
-    title = title.replace(":","")
-    #plt.savefig(PATHPLOT+"\\"+title+".png")
     
     
 #%%
@@ -1320,8 +1270,9 @@ yaw_arr = getdataset_Exp(PATH_2)[11]
 dp = pd.ExcelFile(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing'+'\\'+'Exp2_delay_rhi_corr.xlsx').parse('tabla')
 delay_exp2 = dp['Offset_corr3']
 
-PATH_RHI = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP2\RHI_WF'
 
+df =  pd.ExcelFile(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP2'+'\\'+'Table_exp2.xlsx').parse('tabla')
+PATH_RHI = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP2\RHI_WF'
 
 #Get the ideal Wb and Wr for this sample
 
@@ -1343,6 +1294,7 @@ for i in list(exps[2].keys()):
                 #delay_exp2 = df['Filename']
                 #print(delay_exp2)
                 
+                
                 #Profile of the echo with max received power
                 idx_max_sphere = exps[2][i]['rpower_sph'].index(exps[2][i]['maxpower_sph'])
                 key_max_sphere = list(exps[2][i]['esfera'].keys())[idx_max_sphere]
@@ -1360,16 +1312,20 @@ for i in list(exps[2].keys()):
                 #Timestamp from the h5 file as a base time
                 date2, time2 = exps[2][i]['time'].split("  ")
                 hh,mm,ss = time2.split(":")
-                time_base = datetime.datetime(2022, 5, dias[4], int(hh), int(mm), int(ss))
-                     
+                time_base = datetime.datetime(2022, 5, dias[1], int(hh), int(mm), int(ss))
+                
+                
                 perf_zero = exps[2][i]['profiles_H'][0][0]
                 dif_ang_esf = round((perf_zero-perf_max)/10,1)
                 dif_secs_esf = math.floor(dif_ang_esf)
                 dif_decs_esf = int(round(math.modf(dif_ang_esf)[0],1)*10)
+                
                 time_sphere = time_base + datetime.timedelta(seconds = dif_secs_esf)
+                
                 idx_sphere = time_pos.index(time_sphere)
                 idx_sphere_f = int(idx_sphere + 10*dif_decs_esf/2)
                 #print(exp, i, dif_secs_esf)
+                
                 
                 #Sphere coordinates
                 h = esf_h_arr[idx_sphere_f] - 2.9
@@ -1384,7 +1340,8 @@ for i in list(exps[2].keys()):
                 n_ele = np.array(exps[2][i]['elevation'])
                 n_ran = np.array(exps[2][i]['range'])
                 n_azi = np.array(exps[2][i]['azimuth'])
-                     
+                
+                
                 power = exps[2][i]['powerH']
                 power_list = power.tolist()
                 corr_power = []
@@ -1468,7 +1425,7 @@ for i in list(exps[2].keys()):
                 title = title.replace("  ", "x")
                 title = title.replace("-","")
                 title = title.replace(":","")
-                #plt.savefig(PATH_RHI+'//'+i[-11:-7]+'//'+title+'.png')
+                plt.savefig(PATH_RHI+'//'+i[-11:-7]+'//'+title+'.png')
                 
                 
                 
