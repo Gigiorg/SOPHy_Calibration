@@ -323,7 +323,7 @@ for exp in PATHS:
                 datetime2 = datetime.datetime.fromtimestamp(utctime)
             
                 if count <= 3:
-                    Data_Arr_H = 10*np.log10(h5a['Data']['data_param']['channel00'][:,-33+OFF:])  #0m
+                    Data_Arr_H = 10*np.log10(h5a['Data']['data_param']['channel00'][:,-33+OFF:])  #15m
                     Data_Arr_H[0:71,:10] = -55.0
                     Data_Arr_H[Data_Arr_H > -11] = -55.0
                     
@@ -337,7 +337,7 @@ for exp in PATHS:
                 
                 else:
                 
-                    Data_Arr_H = 10*np.log10(h5a['Data']['data_param']['channel00'][:,-33+OFF:])  #0m
+                    Data_Arr_H = 10*np.log10(h5a['Data']['data_param']['channel00'][:,-33+OFF:])  #15m
                     Data_Arr_H[0:51,:10] = -55.0
                     Data_Arr_H[Data_Arr_H > -11] = -55.0
                     

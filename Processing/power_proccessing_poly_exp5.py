@@ -292,21 +292,8 @@ def get_coords(ang, rangearr):
     a = [centerx, centery, poly]
 
     return a
-'''
-def get_coords(ang, rangearr):    
-    
-    first_range = (15*rangearr)*np.cos(np.deg2rad(ang))
-    center = first_range
-    alt_centro = (15*rangearr)*np.sin(np.deg2rad(ang))
-    alt_sup = (15*rangearr)*np.sin(np.deg2rad(ang+0.9))
-    alt_inf = (15*rangearr)*np.sin(np.deg2rad(ang-0.9))
-    
-    dif_alt = alt_sup - alt_inf
-        
-    a = [center - 7.5, alt_inf, dif_alt, alt_centro]
 
-    return a
-'''
+
 #Iterate over each experiment
 for exp in PATHS:
     power_files = []
@@ -605,7 +592,7 @@ for i in range(len(list(exps[5].keys()))):
     except:
         pass
 
-
+    
 
         
 #%%
@@ -682,16 +669,16 @@ l_29 = {}
 l_30 = {}
         
     
-time_pos = getdataset_Exp(PATHS_TAB[1])[0]
-esf_h_arr = getdataset_Exp(PATHS_TAB[1])[3]
-esf_s_arr = getdataset_Exp(PATHS_TAB[1])[4]
-x_drone = getdataset_Exp(PATHS_TAB[1])[5]
-y_drone = getdataset_Exp(PATHS_TAB[1])[6]
-e_sph = getdataset_Exp(PATHS_TAB[1])[7]
-f_sph = getdataset_Exp(PATHS_TAB[1])[8]
-f_sph = getdataset_Exp(PATHS_TAB[1])[8]
-f_sph = getdataset_Exp(PATHS_TAB[1])[8]
-f_sph = getdataset_Exp(PATHS_TAB[1])[8]
+time_pos = getdataset_Exp(PATHS_TAB[4])[0]
+esf_h_arr = getdataset_Exp(PATHS_TAB[4])[3]
+esf_s_arr = getdataset_Exp(PATHS_TAB[4])[4]
+x_drone = getdataset_Exp(PATHS_TAB[4])[5]
+y_drone = getdataset_Exp(PATHS_TAB[4])[6]
+e_sph = getdataset_Exp(PATHS_TAB[4])[7]
+f_sph = getdataset_Exp(PATHS_TAB[4])[8]
+f_sph = getdataset_Exp(PATHS_TAB[4])[8]
+f_sph = getdataset_Exp(PATHS_TAB[4])[8]
+f_sph = getdataset_Exp(PATHS_TAB[4])[8]
     
     
 #Columns for building the table
@@ -845,9 +832,8 @@ df.columns = ['Datetime','Filename','Azimuth', 'r_o','range','R Power [W]','R Po
                   'Theta x bar', 'Theta x', 'Theta y bar','Theta y', 'Exp Constant', 'Exp Costant [dB]']
 
 
-df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing'+'\\'+'Table_exp_2.xlsx', sheet_name='tabla')
+df.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Post_processing'+'\\'+'Table_exp_5.xlsx', sheet_name='tabla')
 #%%
-
 
 
 PATH_RHI = r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP5\RHI'
@@ -1247,61 +1233,10 @@ df_sa.columns = ['Datetime','Filename','Count','Roll','Pitch','Yaw','Azimuth', '
                       'Theta Y bar','Theta Y','Wb x','Wb y','Exp Constant', 'Exp Constant [dB]']
 
 
-df_sa.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP5\Table_exp5.xlsx', sheet_name='tabla')
+#df_sa.to_excel(r'C:\Users\GIBS\Documents\Documents\SOPHy_Calibration\Processing\EXP5\Table_exp5.xlsx', sheet_name='tabla')
         
 
-#%%
 
-PATHPLOT =r'C:\Users\GIBS\Documents\Experimentos\Experimento2\Plots_ch0'
-import numpy as np
-import matplotlib.pyplot as plt
-import h5py as h5
-l_power = []
-a = 6374
-ae = 4/3*a
-
-for i in dict_3deg_time.keys():
-
-    file = h5.File(PATH+"\\"+i, 'r')
-    
-    n_ele = file['Metadata']['elevation']
-    n_ran = file['Metadata']['range']
-    n_azi = file['Metadata']['azimuth']
-    
-    power = file['Data']['data_param']['channel00']
-    
-    Data_Arr = 10*np.log10(power[:,-33:])
-    #Data_Arr[0:51,:10] = -55.0
-    #Data_Arr[Data_Arr > -17] = -55.0
-    l_power.append(Data_Arr)
-    n_ran2 = np.array(n_ran)
-    n_ele2 = np.array(n_ele)
-    
-    
-    r2, el_rad2 = np.meshgrid(n_ran2, n_ele2/180*np.pi)
-    
-    r21 = r2[:,-33:]
-    el_rad21 = el_rad2[:,-33:]
-    ads = np.multiply(r21,np.sin(el_rad21))
-    ads2 = np.multiply(r21,np.cos(el_rad21))
-    
-    y = (r21**2 + ae**2 + 2*ads*ae)**0.5 - ae
-    x = ae*np.arcsin(np.divide(ads2,ae+y))
-    
-    
-    fig, ax = plt.subplots(1,1,figsize=(15,15))
-    ax.pcolormesh(x,y,Data_Arr,shading='flat', vmin=-45, vmax=-25, edgecolors='k', linewidths=1)
-    ax.set(ylim=(0,0.1))
-    ax.set(xlim=(0,0.5))
-    plt.title("RHI para " + dict_3deg_time[i])
-    plt.xlabel("Rango [Km]")
-    plt.ylabel("Altura [m]")
-    title = dict_3deg_time[i]
-    title = title.replace("  ", "x")
-    title = title.replace("-","")
-    title = title.replace(":","")
-    plt.savefig(PATHPLOT+"\\"+title+".png")
-    
     
 #%%
 
