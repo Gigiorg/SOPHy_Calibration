@@ -22,61 +22,56 @@ f = len(pd.unique(df.Azimuth))
 if (f > 0):
                 
     for i in sorted(pd.unique(df.Azimuth)):
-        fig, ax = plt.subplots(figsize = (14,12))
+        fig, ax = plt.subplots(figsize = (11,9))
                         
         perf = df["Azimuth"] == i
         perf = df[perf]
-                      
+        exp_tick = df['Exp Constant [dB]'][0]          
                       
         c_initial = perf['C_initial [dB]']
         c_after = perf["C_after Wr [dB]"]
         c_after_wb = perf["C_after Wb [dB]"]
-                      
+        
+        c_after_wb_lin = perf["C_after Wb"]
+            
+
+              
         std_initial = np.std(c_initial, ddof=1)
         std_after_wr = np.std(c_after, ddof=1)
-        std_after_wb = np.std(c_after_wb, ddof= 1)
+        std_after_wb = round(np.std(c_after_wb, ddof= 1),2)
                       
                       
         date_time = pd.to_datetime(perf["Datetime"]) 
+        
         theo_constant = perf['Exp Constant [dB]']
+        theo_constant_lin = perf["Exp Constant"]
                       
+        #Mean 
+        avg_c_after_wb = np.mean(c_after_wb_lin)
+        avg_c_after_wb_db = 10*np.log10(avg_c_after_wb)*np.ones(len(theo_constant))
+        
+        
+        #print(avg_c_after_wb)
                       
-        ax.scatter(date_time,c_initial)
-        ax.plot(date_time,c_initial)
-                      
-        ax.scatter(date_time,c_after)
-        ax.plot(date_time,c_after)
-                      
-    
-        ax.scatter(date_time,c_after_wb)
-        ax.plot(date_time,c_after_wb)
-                      
-        ax.plot(date_time,theo_constant, linestyle='dashed')
+        ax.scatter(date_time,c_after_wb, marker="x", linewidths=4)
+        ax.plot(date_time,theo_constant, linestyle='dashed', markersize = 12, linewidth = 3, color = "red")
+        ax.plot(date_time,avg_c_after_wb_db,linestyle='dashed', markersize = 12, linewidth = 3)
+        #ax.scatter(date_time,c_after_wb_lin)
+        #ax.plot(date_time,theo_constant_lin)
+        
+        
+        
         ax.grid()
                       
         ax.set_title(f"Experiment 2, Azimuth: {i}°")
-        ax.legend([f"Without Wr and Wb - Std: {std_initial}",f"With Wr - Std: {std_after_wr}",
-                   f"With Wr and Wb Std: {std_after_wb}", "Theoretical Constant"])
+        ax.legend([ "Theoretical Constant",f"Fitted Experimental Constant, Offset: {round(exp_tick-10*np.log10(avg_c_after_wb),2)} dB" ,
+                   f"Experimental Constant with Wr and Wb, Std: {std_after_wb}"])
       
         ax.set_xlabel("Time")
         ax.set_ylabel("Experimental RCC [dB]")
-        '''
-        ax_1 = fig.add_subplot(3,1,1)
-        ax_1.scatter(date_time,c_initial)
-        ax_1.plot(date_time, c_initial)
-        ax_1.grid()
-        ax_1.set_title(f"{file}, {i} Standard Deviation: {std_initial}")
-        ax_2 = fig.add_subplot(3,1,2)
-        ax_2.scatter(date_time,c_after)
-        ax_2.plot(date_time, c_after)
-        ax_2.grid()
-        ax_2.set_title(f"{file}, {i} Standard Deviation: {std_after_wr}")
-        ax_3 = fig.add_subplot(3,1,3)
-        ax_3.scatter(date_time,c_after_wb)
-        ax_3.plot(date_time, c_after_wb)
-        ax_3.grid()
-        ax_3.set_title(f"{file}, {i} Standard Deviation: {std_after_wb}")
-        '''
+        
+        ax.set_yticks([10*np.log10(avg_c_after_wb), exp_tick,60, 65, 70, 75, 80, 85])
+      
                       
 #%%
 
