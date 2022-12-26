@@ -43,8 +43,8 @@ bwf_h = np.array(df_h.BWF)
 rangeT_h = np.array(df_h.range)
 rPower_h = np.array(df_h["R Power [W]"])
 
-sqLosses_h = ((pT2*gT*gR*gLNA1*gLNA2*lambdaRadar**2)/((4*np.pi)**3*rangeT_h**4*rPower_h)) *sigma*rwf_h*bwf_h
-
+sqLosses_h = ((pT1*gT*gR*gLNA1*gLNA2*lambdaRadar**2)/((4*np.pi)**3*rangeT_h**4*rPower_h)) *sigma*rwf_h*bwf_h
+sqLosses_h_avg = sqLosses_h.mean()
 
 
 
@@ -60,4 +60,5 @@ rangeT_v = np.array(df_v.range)
 
 rPower_v = np.array(df_v["R Power [W]"])
 
-sqLosses_v = ((pT2*gT*gR*gLNA1*gLNA2*lambdaRadar**2)/((4*np.pi)**3*rangeT_v**4*rPower_v)) *sigma*rwf_v*bwf_v
+sqLosses_v = ((pT1*gT*gR*gLNA1*gLNA2*lambdaRadar**2)/((4*np.pi)**3*rangeT_v**4*rPower_v)) *sigma*rwf_v*bwf_v
+sqLosses_v_avg = sqLosses_v.mean()
